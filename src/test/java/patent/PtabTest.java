@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class PtabTrialTest {
+class PtabTest {
 
     @Test
     public void getByTrialNumber () throws Exception {
@@ -44,7 +44,15 @@ class PtabTrialTest {
         PtabTrial trial = PtabTrial.objects.get("IPR2016-00831");
         PtabDocumentManager documents = trial.getDocuments();
         assertEquals(82, documents.length());
+    }
 
+    @Test
+    public void getDocument() {
+        PtabDocument doc = PtabDocument.objects.get("id", "230910");
+        assertEquals("IPR2016-00831", doc.trialNumber);
+        assertEquals(3226184, doc.sizeInBytes);
+        assertEquals("1009", doc.documentNumber);
+        assertEquals("U.S. Provisional Application No. 60/046,276", doc.title);
     }
 
 }
