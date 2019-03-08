@@ -9,24 +9,41 @@ import static org.junit.jupiter.api.Assertions.*;
 class PtabTrialTest {
 
     @Test
-    public void getByTrialNumber () {
+    public void getByTrialNumber () throws Exception {
+        /*
+          "trialNumber": "IPR2016-00831",
+          "applicationNumber": "09026118",
+          "patentNumber": "6162705",
+          "petitionerPartyName": "Commissariat a l’Energie Atomique et aux Energies Alternatives",
+          "patentOwnerName": "Silicon Genesis Corporation",
+          "inventorName": "FRANCOIS HENLEY",
+          "prosecutionStatus": "Terminated-Settled",
+          "filingDate": "2016-04-01",
+          "accordedFilingDate": "2016-04-01",
+          "institutionDecisionDate": "2016-09-28",
+          "lastModifiedDatetime": "2017-07-06T16:06:59",
+         */
+
         PtabTrial trial = PtabTrial.objects.get("IPR2016-00831");
-        assertEquals(trial.trialNumber, "IPR2016-00831");
+        assertEquals("IPR2016-00831", trial.trialNumber);
+        assertEquals("09026118", trial.applicationNumber);
+        assertEquals("6162705", trial.patentNumber);
+        assertEquals("Commissariat a l’Energie Atomique et aux Energies Alternatives", trial.petitionerPartyName);
         assertEquals(LocalDate.of(2016,4,1), trial.filingDate);
     }
 
     @Test
     public void filterByTrialNumber () {
-        PtabTrial[] trials = PtabTrial.objects.filter("trialNumber", "IPR2016-00833");
-        assertEquals(1, trials.length);
-        assertEquals("6103599", trials[0].patentNumber);
+        PtabTrialManager trials = PtabTrial.objects.filter("trialNumber", "IPR2016-00833");
+        assertEquals(1, trials.length());
+        assertEquals("6103599", trials.next().patentNumber);
     }
 
     @Test
     public void getDocumentsFromTrial () throws Exception {
         PtabTrial trial = PtabTrial.objects.get("IPR2016-00831");
-        PtabDocument[] documents = trial.getDocuments();
-        assertEquals(25, documents.length);
+        PtabDocumentManager documents = trial.getDocuments();
+        assertEquals(82, documents.length());
 
     }
 

@@ -1,35 +1,52 @@
 package patent;
 
-
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 
-import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+
 
 public class PtabManager {
-    public static PtabTrial get (String field, String query) { return filter(field, query)[0]; }
+    HashMap<String, String> params;
+    HashMap<Integer, JSONObject> pages = new HashMap<Integer, JSONObject>();
+    int pageSize = 25;
+    int position = 0;
+    public static final String baseUrl = "https://ptabdata.uspto.gov/ptab-api/";
 
-    public static PtabTrial get (String query) {
-        return get("trialNumber", query);
-    }
 
-    public static PtabTrial[] filter (String field, String query) {
-        try {
-            HttpResponse<JsonNode> response = Unirest.get("https://ptabdata.uspto.gov/ptab-api/trials")
-                    .queryString(field, query)
-                    .asJson();
-            JSONArray data = response.getBody().getObject().getJSONArray("results");
-            PtabTrial [] output = new PtabTrial[data.length()];
-            for (int i = 0; i < data.length(); i++) {
-                output[i] = new PtabTrial(data.getJSONObject(i));
-            }
-            return output;
-        } catch (java.lang.Exception e) {
-            System.out.println("Error!");
+    public JSONObject nextJson(String docType) {
+        if (position >= length(docType)) {
+            throw new NoSuchElementException();
         }
-        return null;
+        int page = (int)Math.floor(position / pageSize);
+        int offset = position % pageSize;
+        position++;
+        return getPage(page, docType).getJSONArray("results").getJSONObject(offset);
     }
 
+    private JSONObject getPage(int pageNumber, String docType) {
+        if (pages.containsKey(pageNumber)) {
+            return pages.get(pageNumber);
+        }
 
+        try {
+            params.put("offset", Integer.toString(pageNumber * pageSize));
+            HttpResponse<JsonNode> response = Unirest.get(baseUrl + docType)
+                    .queryString((Map) params)
+                    .asJson();
+            return response.getBody().getObject();
+        } catch (Exception e) {
+            System.out.println("An Error Occured!" + e + e.getCause() + e.getStackTrace());
+            return null;
+        }
+    }
+
+    public int length (String docType) {
+        return getPage(0, docType).getJSONObject("metadata").getInt("count");
+    }
 }
